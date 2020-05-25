@@ -1,3 +1,7 @@
+/*
+Package marquee implements support for encoding and decoding .mrq Marquee
+files as found on the RetroHQ Jaguar SD/GD cartridge.
+*/
 package marquee
 
 import (
@@ -5,7 +9,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"image"
+	"image/draw"
 	"io"
+	"io/ioutil"
 	"strings"
 )
 
@@ -52,24 +58,40 @@ func newMarqueeHeader() marqueeHeader {
 	}
 }
 
+const (
+	customLoad uint16 = 1 << iota
+	/*
+		eeprom128
+		eeprom256or512
+		eeprom1024оr2048 = eeprom128 | eeprom256or512
+	*/
+)
+
+// BUG(bodgit): EEPROM settings are currently unsupported, see https://atariage.com/forums/topic/306049-mrq-file-format/
+
 type marqueeFields struct {
 	marqueeHeader
 	Title     [titleLength]byte
 	Developer [developerLength]byte
 	Publisher [publisherLength]byte
 	Year      [yearLength]byte
-	_         [10]byte // FIXME
+	Flags     uint16
+	LoadAddr  uint32
+	ExecAddr  uint32
 }
 
-// Marquee represents a .mrq file
+// Marquee represents a .mrq file. It implements the encoding.BinaryMarshaler
+// and encoding.BinaryUnmarshaler interfaces.
 type Marquee struct {
 	marqueeFields
 	Title      string
 	Developer  string
 	Publisher  string
 	Year       string
-	Box        *image.RGBA
-	Screenshot *image.RGBA
+	LoadAddr   uint32
+	ExecAddr   uint32
+	Box        image.Image
+	Screenshot image.Image
 }
 
 // NewMarquee returns an empty Marquee with the two images initialised to
@@ -115,19 +137,25 @@ func (m *Marquee) UnmarshalBinary(b []byte) error {
 	m.Publisher = strings.TrimRight(string(m.marqueeFields.Publisher[:]), "\x00")
 	m.Year = strings.TrimRight(string(m.marqueeFields.Year[:]), "\x00")
 
+	if m.marqueeFields.Flags&customLoad != 0 {
+		m.LoadAddr = m.marqueeFields.LoadAddr
+		m.ExecAddr = m.marqueeFields.ExecAddr
+	} else {
+		m.LoadAddr, m.ExecAddr = 0, 0
+	}
+
 	m.Box = image.NewRGBA(image.Rect(0, 0, BoxWidth, BoxHeight))
-	if err := readImage(r, m.Box); err != nil {
+	if err := readImage(r, m.Box.(*image.RGBA)); err != nil {
 		return err
 	}
 
 	m.Screenshot = image.NewRGBA(image.Rect(0, 0, ScreenshotWidth, ScreenshotHeight))
-	if err := readImage(r, m.Screenshot); err != nil {
+	if err := readImage(r, m.Screenshot.(*image.RGBA)); err != nil {
 		return err
 	}
 
 	// There should be no more data to read
-	var p [1]byte
-	if n, _ := r.Read(p[:]); n != 0 {
+	if n, _ := io.CopyN(ioutil.Discard, r, 1); n != 0 {
 		return errTooMuch
 	}
 
@@ -154,9 +182,21 @@ func (m *Marquee) MarshalBinary() ([]byte, error) {
 		return nil, errInvalidBox
 	}
 
+	box, ok := m.Box.(*image.RGBA)
+	if !ok {
+		box = image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(box, box.Bounds(), m.Box, b.Min, draw.Src)
+	}
+
 	b = m.Screenshot.Bounds()
 	if b.Dx() != ScreenshotWidth || b.Dy() != ScreenshotHeight {
 		return nil, errInvalidScreenshot
+	}
+
+	screenshot, ok := m.Screenshot.(*image.RGBA)
+	if !ok {
+		screenshot = image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(screenshot, screenshot.Bounds(), m.Screenshot, b.Min, draw.Src)
 	}
 
 	m.marqueeFields = marqueeFields{}
@@ -167,11 +207,18 @@ func (m *Marquee) MarshalBinary() ([]byte, error) {
 	copy(m.marqueeFields.Publisher[:], m.Publisher)
 	copy(m.marqueeFields.Year[:], m.Year)
 
+	if m.LoadAddr > 0 || m.ExecAddr > 0 {
+		m.marqueeFields.Flags |= customLoad
+	}
+
+	m.marqueeFields.LoadAddr = m.LoadAddr
+	m.marqueeFields.ExecAddr = m.ExecAddr
+
 	w := new(bytes.Buffer)
 	// Writes to bytes.Buffer never error
 	_ = binary.Write(w, binary.BigEndian, &m.marqueeFields)
-	_ = writeImage(w, m.Box)
-	_ = writeImage(w, m.Screenshot)
+	_ = writeImage(w, box)
+	_ = writeImage(w, screenshot)
 
 	return w.Bytes(), nil
 }
