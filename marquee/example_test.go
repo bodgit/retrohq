@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func ExampleMarqueeUnmarshalBinary() {
+func ExampleUnmarshalBinary() {
 	m, err := NewMarquee()
 	if err != nil {
 		panic(err)
@@ -26,7 +26,7 @@ func ExampleMarqueeUnmarshalBinary() {
 	// Output: Tempest 2000
 }
 
-func ExampleMarqueeMarshalBinary() {
+func ExampleMarshalBinary() {
 	m, err := NewMarquee()
 	if err != nil {
 		panic(err)
