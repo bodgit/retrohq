@@ -42,19 +42,21 @@ var (
 	errInvalidScreenshot = errors.New("marquee: invalid screenshot image")
 )
 
-var signature = [4]byte{'M', 'Q', 0, 0}
+var signature = [2]byte{'M', 'Q'}
 
 type marqueeHeader struct {
-	Signature [4]byte
+	Signature [2]byte
+	Version   uint16
 }
 
 func (h marqueeHeader) isValid() bool {
-	return bytes.Equal(h.Signature[:], signature[:])
+	return bytes.Equal(h.Signature[:], signature[:]) && h.Version == 0
 }
 
-func newMarqueeHeader() marqueeHeader {
+func newMarqueeHeader(version uint16) marqueeHeader {
 	return marqueeHeader{
 		Signature: signature,
+		Version:   version,
 	}
 }
 
@@ -200,7 +202,7 @@ func (m *Marquee) MarshalBinary() ([]byte, error) {
 	}
 
 	m.marqueeFields = marqueeFields{}
-	m.marqueeFields.marqueeHeader = newMarqueeHeader()
+	m.marqueeFields.marqueeHeader = newMarqueeHeader(0)
 
 	copy(m.marqueeFields.Title[:], m.Title)
 	copy(m.marqueeFields.Developer[:], m.Developer)
