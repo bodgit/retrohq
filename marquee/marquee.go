@@ -60,16 +60,12 @@ func newMarqueeHeader(version uint16) marqueeHeader {
 	}
 }
 
+// These are the various EEPROM sizes that cartridges/ROM images may have
 const (
-	customLoad uint16 = 1 << iota
-	/*
-		eeprom128
-		eeprom256or512
-		eeprom1024оr2048 = eeprom128 | eeprom256or512
-	*/
+	EEPROM128 int = iota
+	EEPROM256or512
+	EEPROM1024or2048
 )
-
-// BUG(bodgit): EEPROM settings are currently unsupported, see https://atariage.com/forums/topic/306049-mrq-file-format/
 
 type marqueeFields struct {
 	marqueeHeader
@@ -90,6 +86,7 @@ type Marquee struct {
 	Developer  string
 	Publisher  string
 	Year       string
+	EEPROM     int
 	LoadAddr   uint32
 	ExecAddr   uint32
 	Box        image.Image
@@ -139,7 +136,9 @@ func (m *Marquee) UnmarshalBinary(b []byte) error {
 	m.Publisher = strings.TrimRight(string(m.marqueeFields.Publisher[:]), "\x00")
 	m.Year = strings.TrimRight(string(m.marqueeFields.Year[:]), "\x00")
 
-	if m.marqueeFields.Flags&customLoad != 0 {
+	m.EEPROM = int(m.marqueeFields.Flags & 0x06 >> 1)
+
+	if m.marqueeFields.Flags&0x01 != 0 {
 		m.LoadAddr = m.marqueeFields.LoadAddr
 		m.ExecAddr = m.marqueeFields.ExecAddr
 	} else {
@@ -209,8 +208,10 @@ func (m *Marquee) MarshalBinary() ([]byte, error) {
 	copy(m.marqueeFields.Publisher[:], m.Publisher)
 	copy(m.marqueeFields.Year[:], m.Year)
 
+	m.marqueeFields.Flags = uint16(m.EEPROM&0x03) << 1
+
 	if m.LoadAddr > 0 || m.ExecAddr > 0 {
-		m.marqueeFields.Flags |= customLoad
+		m.marqueeFields.Flags |= 0x01
 	}
 
 	m.marqueeFields.LoadAddr = m.LoadAddr
