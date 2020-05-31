@@ -62,9 +62,10 @@ func newMarqueeHeader(version uint16) marqueeHeader {
 
 // These are the various EEPROM sizes that cartridges/ROM images may have
 const (
-	EEPROM128 int = iota
+	EEPROM128 uint = iota
 	EEPROM256or512
 	EEPROM1024or2048
+	MemoryTrack
 )
 
 type marqueeFields struct {
@@ -86,7 +87,7 @@ type Marquee struct {
 	Developer  string
 	Publisher  string
 	Year       string
-	EEPROM     int
+	EEPROM     uint
 	LoadAddr   uint32
 	ExecAddr   uint32
 	Box        image.Image
@@ -136,7 +137,7 @@ func (m *Marquee) UnmarshalBinary(b []byte) error {
 	m.Publisher = strings.TrimRight(string(m.marqueeFields.Publisher[:]), "\x00")
 	m.Year = strings.TrimRight(string(m.marqueeFields.Year[:]), "\x00")
 
-	m.EEPROM = int(m.marqueeFields.Flags & 0x06 >> 1)
+	m.EEPROM = uint(m.marqueeFields.Flags & 0x06 >> 1)
 
 	if m.marqueeFields.Flags&0x01 != 0 {
 		m.LoadAddr = m.marqueeFields.LoadAddr
