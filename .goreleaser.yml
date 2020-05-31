@@ -1,0 +1,19 @@
+---
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - main: ./cmd/jaguarsd/main.go
+    env:
+      - CGO_ENABLED=0
+    goarch:
+      - amd64
+      - arm
+    goos:
+      - darwin
+      - linux
+      - windows
+checksum:
+  name_template: 'checksums.txt'
+release:
+  prerelease: auto
