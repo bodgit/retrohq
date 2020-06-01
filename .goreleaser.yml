@@ -3,7 +3,8 @@ before:
   hooks:
     - go mod tidy
 builds:
-  - main: ./cmd/jaguarsd/main.go
+  - binary: jaguarsd
+    main: ./cmd/jaguarsd/main.go
     env:
       - CGO_ENABLED=0
     goarch:
