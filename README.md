@@ -5,3 +5,16 @@
 
 retrohq
 =======
+
+A collection of libraries and utilities for some of the [RetroHQ](https://www.retrohq.co.uk)  products.
+
+Installation:
+```
+go get github.com/bodgit/retrohq/...
+```
+## jaguarsd
+The `jaguarsd` utility currently allows you to create & edit the `.mrq` marquee files that sit alongside ROM images containing additional metadata.
+
+A quick demo:
+
+<img src="./marquee.svg">

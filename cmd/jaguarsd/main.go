@@ -134,11 +134,7 @@ func updateMarquee(m *marquee.Marquee, c *cli.Context) (err error) {
 		}
 	}
 
-	if err = writeMarquee(m, c.Args().First()); err != nil {
-		return
-	}
-
-	return
+	return writeMarquee(m, c.Args().First())
 }
 
 func main() {
