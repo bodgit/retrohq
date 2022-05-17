@@ -1,4 +1,8 @@
 ---
+archives:
+  - format_overrides:
+      - goos: windows
+        format: zip
 before:
   hooks:
     - go mod tidy
