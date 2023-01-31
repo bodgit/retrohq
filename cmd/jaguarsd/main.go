@@ -201,11 +201,11 @@ func main() {
 
 						m, err := marquee.NewMarquee()
 						if err != nil {
-							return cli.NewExitError(err, 1)
+							return cli.Exit(err, 1)
 						}
 
 						if err := updateMarquee(m, c); err != nil {
-							return cli.NewExitError(err, 1)
+							return cli.Exit(err, 1)
 						}
 
 						return nil
@@ -224,11 +224,11 @@ func main() {
 
 						m, err := readMarquee(c.Args().First())
 						if err != nil {
-							return cli.NewExitError(err, 1)
+							return cli.Exit(err, 1)
 						}
 
 						if err := updateMarquee(m, c); err != nil {
-							return cli.NewExitError(err, 1)
+							return cli.Exit(err, 1)
 						}
 
 						return nil
@@ -247,7 +247,7 @@ func main() {
 
 						m, err := readMarquee(c.Args().First())
 						if err != nil {
-							return cli.NewExitError(err, 1)
+							return cli.Exit(err, 1)
 						}
 
 						table := tablewriter.NewWriter(os.Stdout)

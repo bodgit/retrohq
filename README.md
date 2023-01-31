@@ -1,7 +1,10 @@
-[![Build Status](https://travis-ci.com/bodgit/retrohq.svg?branch=master)](https://travis-ci.com/bodgit/retrohq)
+[![GitHub release](https://img.shields.io/github/v/release/bodgit/retrohq)](https://github.com/bodgit/retrohq/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/bodgit/retrohq/main.yml?branch=master)](https://github.com/bodgit/retrohq/actions?query=workflow%3Abuild)
 [![Coverage Status](https://coveralls.io/repos/github/bodgit/retrohq/badge.svg?branch=master)](https://coveralls.io/github/bodgit/retrohq?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bodgit/retrohq)](https://goreportcard.com/report/github.com/bodgit/retrohq)
 [![GoDoc](https://godoc.org/github.com/bodgit/retrohq?status.svg)](https://godoc.org/github.com/bodgit/retrohq)
+![Go version](https://img.shields.io/badge/Go-1.19-brightgreen.svg)
+![Go version](https://img.shields.io/badge/Go-1.18-brightgreen.svg)
 
 retrohq
 =======
